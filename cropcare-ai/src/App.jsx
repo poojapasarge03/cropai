@@ -105,42 +105,20 @@ function App() {
     formData.append("image", image);
 
     try {
-      // ------------------------------------
-      // API URL
-      // ------------------------------------
-      const apiUrl = import.meta.env.VITE_API_URL;
-
-      if (!apiUrl) {
-        throw new Error(
-          "API URL is not configured. Please check your .env file."
-        );
-      }
-
-      // ------------------------------------
-      // Send Image to Backend
-      // ------------------------------------
-      const response = await fetch(
-        `${apiUrl}/api/analyze`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      // Vercel frontend + Vercel API
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await response.json();
 
-      // ------------------------------------
-      // Handle Backend Error
-      // ------------------------------------
       if (!response.ok) {
         throw new Error(
           data.error || "Failed to analyze image."
         );
       }
 
-      // ------------------------------------
-      // Save Result
-      // ------------------------------------
       setResult(data.result);
     } catch (error) {
       console.error("Analysis error:", error);
