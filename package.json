@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "npm --prefix cropcare-ai run dev",
+    "server": "npm --prefix cropcare-ai run server",
     "build": "npm --prefix cropcare-ai run build",
     "lint": "npm --prefix cropcare-ai run lint",
     "preview": "npm --prefix cropcare-ai run preview"
