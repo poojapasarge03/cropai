@@ -7,7 +7,7 @@ import { GoogleGenAI } from "@google/genai";
 dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // ========================================
 // Middleware
@@ -418,7 +418,7 @@ app.use((req, res) => {
 // ========================================
 // Start Server
 // ========================================
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log("\n========================================");
   console.log("🌱 CropCare AI Server");
   console.log("========================================");

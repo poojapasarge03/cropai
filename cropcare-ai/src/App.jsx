@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
@@ -9,6 +9,20 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
+  // ========================================
+  // Cleanup preview URL
+  // ========================================
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
+  // ========================================
+  // Handle File
+  // ========================================
   const handleFile = (file) => {
     setError("");
     setResult(null);
@@ -17,14 +31,21 @@ function App() {
       return;
     }
 
+    // Validate file type
     if (!file.type.startsWith("image/")) {
       setError("Please select a valid image file.");
       return;
     }
 
+    // Validate file size
     if (file.size > 5 * 1024 * 1024) {
       setError("Image size must be less than 5 MB.");
       return;
+    }
+
+    // Revoke previous preview URL
+    if (preview) {
+      URL.revokeObjectURL(preview);
     }
 
     setImage(file);
@@ -33,20 +54,32 @@ function App() {
     setPreview(imageUrl);
   };
 
+  // ========================================
+  // File Input
+  // ========================================
   const handleImageChange = (event) => {
     handleFile(event.target.files[0]);
   };
 
+  // ========================================
+  // Drag Over
+  // ========================================
   const handleDragOver = (event) => {
     event.preventDefault();
     setDragActive(true);
   };
 
+  // ========================================
+  // Drag Leave
+  // ========================================
   const handleDragLeave = (event) => {
     event.preventDefault();
     setDragActive(false);
   };
 
+  // ========================================
+  // Drop
+  // ========================================
   const handleDrop = (event) => {
     event.preventDefault();
     setDragActive(false);
@@ -55,6 +88,9 @@ function App() {
     handleFile(file);
   };
 
+  // ========================================
+  // Analyze Image
+  // ========================================
   const handleAnalyze = async () => {
     if (!image) {
       setError("Please select an image first.");
@@ -69,8 +105,22 @@ function App() {
     formData.append("image", image);
 
     try {
+      // ------------------------------------
+      // API URL
+      // ------------------------------------
+      const apiUrl = import.meta.env.VITE_API_URL;
+
+      if (!apiUrl) {
+        throw new Error(
+          "API URL is not configured. Please check your .env file."
+        );
+      }
+
+      // ------------------------------------
+      // Send Image to Backend
+      // ------------------------------------
       const response = await fetch(
-        "http://localhost:5000/api/analyze",
+        `${apiUrl}/api/analyze`,
         {
           method: "POST",
           body: formData,
@@ -79,12 +129,18 @@ function App() {
 
       const data = await response.json();
 
+      // ------------------------------------
+      // Handle Backend Error
+      // ------------------------------------
       if (!response.ok) {
         throw new Error(
           data.error || "Failed to analyze image."
         );
       }
 
+      // ------------------------------------
+      // Save Result
+      // ------------------------------------
       setResult(data.result);
     } catch (error) {
       console.error("Analysis error:", error);
@@ -98,22 +154,39 @@ function App() {
     }
   };
 
+  // ========================================
+  // UI
+  // ========================================
   return (
     <div className="app">
 
+      {/* ==================================
+          Header
+      ================================== */}
       <div className="header">
-        <div className="logo">🌾</div>
 
-        <h1>CropCare AI</h1>
+        <div className="logo">
+          🌾
+        </div>
+
+        <h1>
+          CropCare AI
+        </h1>
 
         <p>
           AI-powered crop disease detection assistant
         </p>
+
       </div>
 
+      {/* ==================================
+          Upload Card
+      ================================== */}
       <div className="upload-card">
 
-        <h2>Upload a Crop Image</h2>
+        <h2>
+          Upload a Crop Image
+        </h2>
 
         <p>
           Upload a clear image of a plant or leaf.
@@ -121,8 +194,9 @@ function App() {
           symptoms and provide general guidance.
         </p>
 
-        {/* Drag and Drop Area */}
-
+        {/* ==================================
+            Drag & Drop
+        ================================== */}
         <label
           className={`drop-zone ${
             dragActive ? "drag-active" : ""
@@ -134,7 +208,7 @@ function App() {
 
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={handleImageChange}
           />
 
@@ -158,23 +232,31 @@ function App() {
 
         </label>
 
+        {/* ==================================
+            Error
+        ================================== */}
         {error && (
           <p className="error">
             {error}
           </p>
         )}
 
-        {/* Image Preview */}
-
+        {/* ==================================
+            Image Preview
+        ================================== */}
         {preview && !loading && (
           <div className="preview-container">
 
             <div className="preview-header">
-              <h3>Selected Image</h3>
+
+              <h3>
+                Selected Image
+              </h3>
 
               <span>
                 ✓ Ready for analysis
               </span>
+
             </div>
 
             <img
@@ -186,8 +268,9 @@ function App() {
           </div>
         )}
 
-        {/* Analyze Button */}
-
+        {/* ==================================
+            Analyze Button
+        ================================== */}
         <button
           onClick={handleAnalyze}
           disabled={!image || loading}
@@ -197,8 +280,9 @@ function App() {
             : "Analyze with AI"}
         </button>
 
-        {/* AI Scanning Animation */}
-
+        {/* ==================================
+            AI Scanning Animation
+        ================================== */}
         {loading && (
           <div className="scanning-container">
 
@@ -218,9 +302,11 @@ function App() {
             <div className="scanning-text">
 
               <div className="loading-dots">
+
                 <span></span>
                 <span></span>
                 <span></span>
+
               </div>
 
               <strong>
@@ -237,14 +323,16 @@ function App() {
           </div>
         )}
 
-        {/* AI Result */}
-
+        {/* ==================================
+            AI Result
+        ================================== */}
         {result && (
           <div className="result-card">
 
             <div className="result-header">
 
               <div>
+
                 <span className="result-label">
                   AI ANALYSIS
                 </span>
@@ -252,6 +340,7 @@ function App() {
                 <h2>
                   🌱 Crop Health Assessment
                 </h2>
+
               </div>
 
               <span
@@ -264,6 +353,9 @@ function App() {
 
             </div>
 
+            {/* ==================================
+                Plant Identification
+            ================================== */}
             <div className="plant-section">
 
               <div className="plant-icon">
@@ -291,6 +383,9 @@ function App() {
 
             </div>
 
+            {/* ==================================
+                Disease
+            ================================== */}
             <div className="diagnosis-section">
 
               <span className="section-label">
@@ -306,12 +401,17 @@ function App() {
               {result.pathogen && (
                 <p>
                   Possible cause:{" "}
-                  <em>{result.pathogen}</em>
+                  <em>
+                    {result.pathogen}
+                  </em>
                 </p>
               )}
 
             </div>
 
+            {/* ==================================
+                Symptoms + Treatment
+            ================================== */}
             <div className="analysis-grid">
 
               <div className="analysis-box">
@@ -352,6 +452,9 @@ function App() {
 
             </div>
 
+            {/* ==================================
+                Prevention
+            ================================== */}
             <div className="prevention-box">
 
               <h3>
@@ -366,11 +469,15 @@ function App() {
                       className="prevention-item"
                       key={index}
                     >
-                      <span>✓</span>
+
+                      <span>
+                        ✓
+                      </span>
 
                       <p>
                         {tip}
                       </p>
+
                     </div>
                   )
                 )}
@@ -379,20 +486,32 @@ function App() {
 
             </div>
 
+            {/* ==================================
+                Disclaimer
+            ================================== */}
             <div className="result-disclaimer">
-              <strong>Important:</strong>{" "}
+
+              <strong>
+                Important:
+              </strong>{" "}
               This is general AI-assisted guidance
               and should not replace advice from a
               qualified agricultural expert.
+
             </div>
 
           </div>
         )}
 
+        {/* ==================================
+            Warning
+        ================================== */}
         <p className="warning">
+
           ⚠️ CropCare AI provides general AI-assisted
           guidance and should not replace advice from
           qualified agricultural experts.
+
         </p>
 
       </div>
