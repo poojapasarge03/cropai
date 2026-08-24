@@ -134,3 +134,25 @@ cropai/
 ├── README.md
 ├── vite.config.js
 └── server.js
+
+## 📸 Screenshots
+
+### 🏠 Home Page
+
+![CropCare AI Home](screenshots/home.png)
+
+### 📤 Upload Crop Image
+
+![Crop Image Upload](screenshots/upload.png)
+
+### 🤖 AI Analysis
+
+![AI Scanning](screenshots/scanning.png)
+
+### 🌱 Crop Health Assessment
+
+![AI Analysis Result](screenshots/result.png)
+
+### 🔬 Additional Analysis Result
+
+![Additional Crop Analysis](screenshots/result2.png)
